@@ -1,0 +1,196 @@
+@startuml
+node "Transip\n(Registrar)" as Registrar {
+  node "neplusultra.eu" as Domain1
+  node "sashreeseepersad.com" as Domain2
+}
+
+node "Internet" as Internet
+
+node "DNS Resolution" as DNSResolution
+
+node "CloudFront\n(Optional)" as CloudFront
+
+node "Contabo VPS 1" as VPS1 {
+  node "Nginx Reverse Proxy" as ReverseProxy
+  node "Persistent Storage\n(Optional)" as Volumes
+
+  node "WordPress Nginx Webserver" as WordPressWebserver {
+    node "WordPress Container" as WordPressContainer1 {
+      node "WordPress (neplusultra.eu)" as WordPress1
+    }
+    node "WordPress Container" as WordPressContainer2 {
+      node "WordPress (sashreeseepersad.com)" as WordPress2
+    }
+  }
+
+  node "MariaDB Container" as MariaDBContainer {
+    node "MariaDB Database" as Database
+  }
+
+  node "Podman Virtual Network" as PodmanNetwork
+  node "Podman (or Docker)" as Podman
+  node "Backup Scripts" as BackupScripts
+}
+
+node "Contabo VPS 2" as VPS2 {
+  node "iRedMail Email Server" as EmailServer
+}
+
+node "AWS Tenant" as AWSTenanant {
+  node "DNS\n(AWS Route 53 - Signed Zone)" as DNS {
+    node "A Record\n(iRedMail Server)" as ARecord
+    node "MX Record\n(iRedMail Server)" as MXRecord
+    node "DNSSEC Validation" as DNSSECValidation {
+      node "Root Zone" as RootZone
+      node "com Zone" as ComZone
+      node "sashreeseepersad.com Zone" as SashreeseepersadZone
+    }
+  }
+  node "S3 Bucket\n(Backups)" as S3Bucket
+}
+
+node "User" as User
+
+Registrar -[#blue]-> Domain1
+Registrar -[#blue]-> Domain2
+Domain1 -[#blue]-> DNS
+Domain2 -[#blue]-> DNS
+DNS -[#blue]-> Internet
+
+Internet -[#blue]-> DNSResolution
+DNSResolution -[#blue]-> CloudFront
+
+User -[#blue]-> CloudFront
+CloudFront -[#blue]-> ReverseProxy
+ReverseProxy -[#blue]-> WordPressWebserver
+
+WordPressWebserver -[#blue]-> WordPress1
+WordPressWebserver -[#blue]-> WordPress2
+
+WordPress1 -[#blue]-> Database
+WordPress2 -[#blue]-> Database
+
+WordPress1 -[#green]-> EmailServer
+WordPress2 -[#green]-> EmailServer
+
+Podman -[#blue]-> PodmanNetwork
+PodmanNetwork -[#blue]-> WordPressContainer1
+PodmanNetwork -[#blue]-> WordPressContainer2
+PodmanNetwork -[#blue]-> MariaDBContainer
+PodmanNetwork -[#blue]-> ReverseProxy
+PodmanNetwork -[#blue]-> BackupScripts
+
+Podman -[#blue]-> Volumes
+Volumes -[#blue]-> ReverseProxy
+Volumes -[#blue]-> WordPressWebserver
+Volumes -[#blue]-> WordPress1
+Volumes -[#blue]-> WordPress2
+Volumes -[#blue]-> Database
+
+BackupScripts -[#blue]-> S3Bucket
+BackupScripts -[#blue]-> WordPress1
+BackupScripts -[#blue]-> WordPress2
+BackupScripts -[#blue]-> Database
+
+note left of Registrar
+  Manages domain names
+end note
+
+note right of DNS
+  Authoritative DNS
+  with DNSSEC
+  Hosted Zone includes
+  A and MX records for
+  iRedMail Server
+end note
+
+note right of DNSSECValidation
+  DNSSEC Validation
+  for Root, com, and
+  sashreeseepersad.com
+  zones
+end note
+
+note bottom of DNSResolution
+  Resolves domain names
+  to IP addresses
+end note
+
+note right of CloudFront
+  Caches and serves
+  content globally
+end note
+
+note right of VPS1
+  Virtual Private Server
+  from Contabo for Web,
+  Backup Scripts, and
+  Persistent Storage
+end note
+
+note right of ReverseProxy
+  Load balancing
+  and SSL termination
+end note
+
+note right of WordPressWebserver
+  Nginx webserver
+  for WordPress
+end note
+
+note right of WordPressContainer1
+  WordPress
+  application
+end note
+
+note right of MariaDBContainer
+  Single MariaDB
+  database container
+end note
+
+note right of PodmanNetwork
+  Virtual network created
+  by Podman for containers
+end note
+
+note right of Podman
+  Container runtime
+  (Podman or Docker)
+end note
+
+note right of Volumes
+  Persistent storage
+  for Nginx Reverse Proxy,
+  WordPress Nginx Webserver,
+  WordPress containers, and
+  MariaDB container
+end note
+
+note right of BackupScripts
+  Scripts for backing up
+  to AWS S3 Bucket
+end note
+
+note right of VPS2
+  Virtual Private Server
+  from Contabo for iRedMail
+  Email Server
+end note
+
+note right of EmailServer
+  iRedMail Email Server
+  integrated with WordPress
+  containers for sending
+  and receiving emails
+end note
+
+note right of AWSTenanant
+  AWS Tenant
+  for DNS and S3 Backups
+end note
+
+legend
+  |#blue|= SSL/TLS
+  |#green|= SMTP/IMAP
+endlegend
+@enduml
