@@ -1,7 +1,7 @@
 @startuml
 node "Transip\n(Registrar)" as Registrar {
-  node "neplusultra.eu" as Domain1
-  node "sashreeseepersad.com" as Domain2
+  node "domain1.com" as Domain1
+  node "domain2.com" as Domain2
 }
 
 node "Internet" as Internet
@@ -16,10 +16,10 @@ node "Contabo VPS 1" as VPS1 {
 
   node "WordPress Nginx Webserver" as WordPressWebserver {
     node "WordPress Container" as WordPressContainer1 {
-      node "WordPress (neplusultra.eu)" as WordPress1
+      node "WordPress (domain1.com)" as WordPress1
     }
     node "WordPress Container" as WordPressContainer2 {
-      node "WordPress (sashreeseepersad.com)" as WordPress2
+      node "WordPress (domain2.com)" as WordPress2
     }
   }
 
@@ -43,7 +43,7 @@ node "AWS Tenant" as AWSTenanant {
     node "DNSSEC Validation" as DNSSECValidation {
       node "Root Zone" as RootZone
       node "com Zone" as ComZone
-      node "sashreeseepersad.com Zone" as SashreeseepersadZone
+      node "domain1.com.com Zone" as domain1Zone
     }
   }
   node "S3 Bucket\n(Backups)" as S3Bucket
@@ -107,7 +107,7 @@ end note
 note right of DNSSECValidation
   DNSSEC Validation
   for Root, com, and
-  sashreeseepersad.com
+  domain1.com
   zones
 end note
 
